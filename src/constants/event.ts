@@ -1,0 +1,4 @@
+/** request token event type */
+export const GOOGLE_DRIVE_AUTH_EVENT = 'GOOGLE_DRIVE_AUTH_EVENT'
+
+export const GOOGLE_DRIVE_UPLOAD_EVENT = 'GOOGLE_DRIVE_UPLOAD_EVENT'
