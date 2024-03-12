@@ -13,8 +13,8 @@ export interface SyncConfiguration {
 export class SyncService {
   protected fs = new FileSystem()
   protected logger = new Logger('Sync')
-  protected gd
-  protected queue
+  protected gd: GoogleDrive
+  protected queue: TaskQueue<UploadTask | DownloadTask>
 
   constructor(config: SyncConfiguration) {
     const { googleApiKey, googleClientId } = config

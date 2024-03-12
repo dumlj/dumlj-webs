@@ -1,5 +1,5 @@
 {
-  "extends": "./tsconfig.compile.json",
+  "extends": "./tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
     "rootDir": "src",
@@ -8,8 +8,8 @@
     "declaration": true,
     "paths": {
       "@/*": ["./src/*"]
-    },
-    "composite": true
+    }
   },
-  "references": []
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "exclude": ["node_modules", "./libs"]
 }

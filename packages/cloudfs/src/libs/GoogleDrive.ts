@@ -58,8 +58,8 @@ export interface UploadOptions {
 
 export class GoogleDrive extends GoogleAuth {
   protected logger = new Logger('GoogleDrive')
-  protected queue
-  protected root
+  protected queue: TaskQueue<GoogleDriveTaskInfo>
+  protected root: string
 
   constructor(auth: Omit<GoogleAuthConfig, 'scope'>, options?: GoogleDriveOptions) {
     super({ ...auth, scope: GOOGLE_DRIVE_SCOPES })

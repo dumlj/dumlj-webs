@@ -2,7 +2,7 @@
   "exclude": ["**"],
   "references": [
     {
-      "path": "./packages/cloudfs/tsconfig.compile.json"
+      "path": "./packages/cloudfs/tsconfig.build.json"
     }
   ]
 }
