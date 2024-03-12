@@ -97,7 +97,7 @@ export interface GDFileField {
 
 export type GDFileFieldKey = keyof GDFileField
 
-export type FSFileContent = string | number | ArrayBuffer | Uint8Array | Blob
+export type FSFileContent = string | number | ArrayBuffer | Uint8Array | Blob | null
 
 export interface FSFile {
   name: string

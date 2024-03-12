@@ -1,4 +1,4 @@
-import { debug } from '@/services/pretty'
+import { Logger } from '@/libs/Logger'
 import { GOOGLE_DRIVE_ACCESS_TOKEN_LOCALSTORAGE_NAME, GOOGLE_DRIVE_API_URL, GOOGLE_DRIVE_AUTH_EVENT } from '@/constants'
 import { Messager } from './Messager'
 
@@ -17,6 +17,7 @@ export class GoogleAuth {
   protected apiKey: string
   protected tokenClient: google.accounts.oauth2.TokenClient
   protected messager = new Messager({ speaker: window })
+  protected logger = new Logger('GoogleAuth')
 
   protected get accessToken() {
     const token = this.loadAccessToken()
@@ -61,12 +62,21 @@ export class GoogleAuth {
         this.messager.dispatchEvent(GOOGLE_DRIVE_AUTH_EVENT, detail)
       },
     })
+
+    this.requestAccessToken().then(async (accessToken) => {
+      await this.setAccessToken(accessToken)
+    })
   }
 
   public async open() {
     const accessToken = await this.requestAccessToken()
+    this.setAccessToken(accessToken)
+  }
+
+  protected async setAccessToken(accessToken: string) {
     if (gapi?.client) {
       gapi.client.setToken({ access_token: accessToken })
+      this.saveAccessToken(accessToken)
       return
     }
 
@@ -127,7 +137,7 @@ export class GoogleAuth {
   protected clearAccessToken() {
     localStorage.removeItem(GOOGLE_DRIVE_ACCESS_TOKEN_LOCALSTORAGE_NAME)
     gapi.client.setToken(null)
-    debug('Clear access token')
+    this.logger.debug('Clear access token')
   }
 
   // public async refreshToken() {

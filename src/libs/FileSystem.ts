@@ -2,6 +2,9 @@ import { isMatch } from 'micromatch'
 import { IndexedDB } from '@/libs/IndexedDB'
 import { resolveFile, joinPath, toUint8Array, calculateMD5Checksum } from '@/utils'
 import { FS_DATABASE, FS_FILE_STORE_NAME, FS_FILE_STORE_INDEXES, FS_FOLDER_STORE_NAME, FS_FOLDER_STORE_INDEXES, FS_DATABASE_VERSION } from '@/constants'
+import * as EVENTS from '@/constants/event'
+import { Logger } from '@/libs/Logger'
+import { Messager } from '@/libs/Messager'
 import type { FSFileContent, FSFile, FSFolder } from '@/types'
 
 export interface WriteFileOptions {
@@ -13,42 +16,40 @@ export interface GlobOptions {
 }
 
 export class FileSystem {
-  protected db: IndexedDB
-
-  constructor() {
-    this.db = new IndexedDB({
-      database: FS_DATABASE,
-      version: FS_DATABASE_VERSION,
-      store: {
-        [FS_FILE_STORE_NAME]: {
-          indexes: Array.from(
-            (function* () {
-              for (const name of FS_FILE_STORE_INDEXES) {
-                yield {
-                  name,
-                  keyPath: name,
-                  options: { unique: false },
-                }
+  protected messager = new Messager()
+  protected logger = new Logger('FS')
+  protected db = new IndexedDB({
+    database: FS_DATABASE,
+    version: FS_DATABASE_VERSION,
+    store: {
+      [FS_FILE_STORE_NAME]: {
+        indexes: Array.from(
+          (function* () {
+            for (const name of FS_FILE_STORE_INDEXES) {
+              yield {
+                name,
+                keyPath: name,
+                options: { unique: false },
               }
-            })()
-          ),
-        },
-        [FS_FOLDER_STORE_NAME]: {
-          indexes: Array.from(
-            (function* () {
-              for (const name of FS_FOLDER_STORE_INDEXES) {
-                yield {
-                  name,
-                  keyPath: name,
-                  options: { unique: false },
-                }
-              }
-            })()
-          ),
-        },
+            }
+          })()
+        ),
       },
-    })
-  }
+      [FS_FOLDER_STORE_NAME]: {
+        indexes: Array.from(
+          (function* () {
+            for (const name of FS_FOLDER_STORE_INDEXES) {
+              yield {
+                name,
+                keyPath: name,
+                options: { unique: false },
+              }
+            }
+          })()
+        ),
+      },
+    },
+  })
 
   public async glob(pattern: string | string[], options?: GlobOptions) {
     const { root = '/' } = options || {}
@@ -87,13 +88,15 @@ export class FileSystem {
 
     await mkdir(folderStore)
     await writeFile(fileStore)
+
+    this.messager.dispatchEvent(EVENTS.FS_WRITE_FILE_EVENT, { file, content })
   }
 
   public async rm(file: string) {
-    const primaryKey = this.resolvePrimaryKey(file)
-    const [store] = await this.db.getStore(FS_FILE_STORE_NAME, 'readwrite')
+    await this.writeFile(file, null)
+    this.logger.debug(`Delete file ${file}`)
 
-    await this.db.put(store, null, primaryKey)
+    this.messager.dispatchEvent(EVENTS.FS_RM_EVENT, { file })
   }
 
   public async readdir(path: string) {
@@ -108,6 +111,8 @@ export class FileSystem {
     const folderRequest = folderIndex.getAll(IDBKeyRange.only(primaryKey))
     const foldersResp = await this.db.resolveRequest<FSFolder[]>(folderRequest)
 
+    this.logger.debug(`Found ${filesResp.length} files and ${foldersResp} folders.`)
+
     const files = filesResp.map(({ name }) => name)
     const folders = foldersResp.map(({ name }) => name)
     return [...files, ...folders]
@@ -117,6 +122,8 @@ export class FileSystem {
     const [store] = await this.db.getStore([FS_FILE_STORE_NAME, FS_FOLDER_STORE_NAME], 'readwrite')
     const writeFolder = this.buildDirMaker(path)
     await writeFolder(store)
+
+    this.messager.dispatchEvent(EVENTS.FS_MKDIR_EVENT, { path })
   }
 
   public async rmdir(path: string) {
@@ -140,6 +147,9 @@ export class FileSystem {
     for (const folder of folders?.value) {
       await this.db.put(folderStore, null, folder.primaryKey)
     }
+
+    this.messager.dispatchEvent(EVENTS.FS_RMDIR_EVENT, { path })
+    this.logger.debug(`Delete ${path} and its children`)
   }
 
   public async pathExists(file: string) {
@@ -167,15 +177,21 @@ export class FileSystem {
       const lastModified = new Date()
       const content = await toUint8Array(source)
       const md5Checksum = calculateMD5Checksum(content)
-      return this.db.put(store, { name, content, lastModified, folder, mimeType, md5Checksum }, key)
+      const fields = { name, content, lastModified, folder, mimeType, md5Checksum }
+
+      await this.db.put(store, fields, key)
+      this.logger.debug(`Write to ${filePath}`, fields)
     }
   }
 
   protected buildDirMaker(folder: string) {
-    return (store: IDBObjectStore) => {
+    return async (store: IDBObjectStore) => {
       const { basename: name, dirname: parent, filepath: key } = resolveFile(folder)
       const lastModified = new Date()
-      return this.db.put(store, { name, parent, lastModified }, key)
+      const fields = { name, parent, lastModified }
+
+      await this.db.put(store, fields, key)
+      this.logger.debug(`Write to ${folder}`, fields)
     }
   }
 }
