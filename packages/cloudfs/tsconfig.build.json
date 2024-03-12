@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.compile.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": "src",
+    "outDir": "libs",
+    "declarationDir": "libs",
+    "declaration": true,
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "composite": true
+  },
+  "references": [
+  ]
+}

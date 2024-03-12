@@ -1,0 +1,10 @@
+{
+  "exclude": [
+    "**"
+  ],
+  "references": [
+    {
+      "path": "./packages/cloudfs/tsconfig.compile.json"
+    }
+  ]
+}

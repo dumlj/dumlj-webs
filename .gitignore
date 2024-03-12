@@ -1,5 +1,8 @@
 # Dest resouces
 
+# Typescript
+tsconfig.compile.tsbuildinfo
+
 # Husky
 .husky
 

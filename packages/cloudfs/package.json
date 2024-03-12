@@ -1,0 +1,20 @@
+{
+  "name": "@dumlj/cloudfs",
+  "version": "1.0.0",
+  "description": "FS synchronizes with cloud drive.",
+  "author": "DavidJones <qowera@gmail.com>",
+  "license": "MIT",
+  "main": "./libs/index.js",
+  "types": "./libs/index.d.ts",
+  "scripts": {
+    "clear": "rimraf ./libs",
+    "compile": "tsc --project ./tsconfig.compile.json",
+    "dev": "jest --watch",
+    "test": "jest"
+  },
+  "dependencies": {
+    "crypto-js": "^4.2.0",
+    "micromatch": "^4.0.5",
+    "mime": "^4.0.1"
+  }
+}
