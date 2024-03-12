@@ -7,8 +7,8 @@
   "scripts": {
     "commit": "git-cz",
     "ci:pages": "shx rm -rf ./gh-pages && mkdir -p ./gh-pages",
-    "ci:coverage": "npm run compile && npm run test",
-    "ci:build": "npm run compile",
+    "ci:coverage": "pnpm compile && pnpm lint && pnpm test",
+    "ci:build": "pnpm compile",
     "preinstall": "node ./scripts/preinstall.mjs",
     "postinstall": "node ./scripts/postinstall.mjs",
     "clear": "rimraf --glob ./@*/*/{libs,build,*.tsbuildinfo,tsconfig.build.json} tsconfig.build.json",
@@ -17,7 +17,7 @@
     "compile": "tsc --build ./tsconfig.build.json",
     "test": "jest -c ./jest.config.ts --coverage",
     "dev": "jest -c ./jest.config.ts --watch",
-    "ok": "pnpm format && pnpm lint && pnpm compile"
+    "ok": "pnpm format && pnpm lint && pnpm compile && pnpm test"
   },
   "workspaces": [
     "packages/*",
@@ -51,6 +51,7 @@
     "husky": "^8.0.3",
     "jest": "^29.7.0",
     "jest-cli": "^29.7.0",
+    "jest-environment-node": "^29.7.0",
     "jest-junit": "^16.0.0",
     "jest-puppeteer": "^10.0.1",
     "jest-runner-tsd": "^6.0.0",

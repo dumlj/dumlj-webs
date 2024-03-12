@@ -1,4 +1,4 @@
-import type { FSFileContent } from '../types'
+import type { FSFileContent } from '@/types'
 
 export async function toUint8Array(content: FSFileContent) {
   if (content instanceof Blob) {
@@ -20,7 +20,7 @@ export async function toUint8Array(content: FSFileContent) {
 
   if (typeof content === 'string') {
     const encoder = new TextEncoder()
-    return encoder.encode(content)
+    return new Uint8Array(encoder.encode(content))
   }
 
   return new Uint8Array()

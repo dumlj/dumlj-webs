@@ -34,7 +34,7 @@ module.exports = {
          * SRC 下不能有只声明在 devDependencies 的依赖
          * 特定情况可以通过 `// eslint-disable-next-line import/no-extraneous-dependencies` 忽略
          */
-        devDependencies: ['**/*.spec.ts', '**/*/jest.config.*.ts', './scripts/**/*.mjs'],
+        devDependencies: ['**/*.spec.ts', '**/*/jest.config.ts', '**/__tests__/**/*.ts', './scripts/**/*.mjs'],
       },
     ],
   },
