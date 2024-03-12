@@ -1,6 +1,8 @@
 # Dest resouces
+coverage
 libs
 !**/src/**/libs
+!**/__tests__/**/libs
 
 # Typescript
 tsconfig.build.tsbuildinfo

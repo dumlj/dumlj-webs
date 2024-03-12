@@ -1,9 +1,7 @@
 # Dest resouces
-build
 libs
 !**/src/**/libs
-docs-dist
-.next
+!**/__tests__/**/libs
 coverage
 junit.xml
 gh-pages
