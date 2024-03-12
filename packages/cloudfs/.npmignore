@@ -3,7 +3,6 @@
 /__example__
 /src
 tsconfig.build.json
-tsconfig.compile.json
 
 # Dependency folders
 node_modules

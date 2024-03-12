@@ -17,7 +17,7 @@ function styleMessage(color: string) {
 }
 
 export class Logger {
-  public banners
+  public banners: string[]
 
   constructor(banners?: string | string[]) {
     this.banners = Array.isArray(banners) ? banners : typeof banners === 'string' ? [banners] : ([] as string[])

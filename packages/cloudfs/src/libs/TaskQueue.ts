@@ -11,14 +11,14 @@ export interface TaskQueueOptions {
 }
 
 export class TaskQueue<T = any> {
-  protected db
-  protected tasks
-  protected maxTasks
-  protected retryAttempts
-  protected execute
-  protected execution
-  protected name
-  protected logger
+  protected db: IndexedDB
+  protected tasks: Map<string, Task<T>>
+  protected maxTasks: number
+  protected retryAttempts: number
+  protected execute: TaskQueueExecutor<T>
+  protected execution: Promise<any>
+  protected name: string
+  protected logger: Logger
 
   constructor(name: string, execute: TaskQueueExecutor<T>, options?: TaskQueueOptions) {
     const { maxTasks = 10, retryAttempts = 3 } = options || {}
