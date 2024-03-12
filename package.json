@@ -1,8 +1,7 @@
 {
-  "name": "cloudfs",
+  "name": "webs",
   "version": "0.0.1",
-  "description": "FS synchronizes with cloud drive.",
-  "author": "DavidJones <qowera@gmail.com>",
+  "private": true,
   "license": "MIT",
   "packageManager": "pnpm@8.15.1",
   "scripts": {
