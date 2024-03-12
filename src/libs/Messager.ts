@@ -1,5 +1,5 @@
+import { Logger } from '@/libs/Logger'
 import { narrow } from '@/utils'
-import { debug } from '@/services/pretty'
 
 export type EventType = string | string[] | Set<string>
 export type Action<T = unknown> = (payload: T) => void
@@ -14,6 +14,7 @@ export interface MessagerOptions {
 }
 
 export class Messager {
+  protected logger = new Logger('Messager')
   protected speaker: EventTarget
   protected deprecatedListeners: [() => void, string[], (event: Event) => void, Action<any>][]
   protected deprecateMessageHandle: (event: MessageEvent) => void
@@ -33,7 +34,7 @@ export class Messager {
       this.speaker.dispatchEvent(message)
     }
 
-    debug(`Received "${types}" Event.`, '\n', detail)
+    this.logger.debug(`Received "${types}" Event.`, detail)
   }
 
   public addEventListener<T>(eventType: EventType, handle: Action<T>) {
@@ -52,7 +53,7 @@ export class Messager {
 
     const deprecate = () => {
       types.forEach((type) => this.speaker.removeEventListener(type, onMessage, false))
-      this.deprecatedListeners = this.deprecatedListeners.filter(([,, deprecatedHandle]) => {
+      this.deprecatedListeners = this.deprecatedListeners.filter(([, , deprecatedHandle]) => {
         return handle === deprecatedHandle
       })
     }

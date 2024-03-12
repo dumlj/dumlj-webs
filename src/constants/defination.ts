@@ -1,8 +1,5 @@
 import type { GDFileFieldKey, FSFileKey, FSFolderKey, TaskKey } from '@/types'
 
-/* prefix of logger */
-export const LOGGER_BANNER = 'cloudfs'
-
 /* base folder in google drive */
 export const GOOGLE_DRIVE_BASE_FOLDER_NAME = 'cloudfs'
 

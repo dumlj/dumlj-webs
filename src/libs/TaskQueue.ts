@@ -1,6 +1,6 @@
 import { IndexedDB } from '@/libs/IndexedDB'
+import { Logger } from '@/libs/Logger'
 import { TASK_QUEUE_DATABASE, TASK_QUEUE_DATABASE_VERSION, TASK_QUEUE_TASK_STORE_INDEXES, TASK_QUEUE_TASK_STORE_NAME } from '@/constants'
-import { debug, fail } from '@/services/pretty'
 import type { Task } from '@/types'
 
 export type TaskQueueExecutor<T = any> = (task: Task<T>) => Promise<void>
@@ -12,12 +12,13 @@ export interface TaskQueueOptions {
 
 export class TaskQueue<T = any> {
   protected db
-  protected tasks: Task<T>[]
+  protected tasks
   protected maxTasks
   protected retryAttempts
   protected execute
   protected execution
   protected name
+  protected logger
 
   constructor(name: string, execute: TaskQueueExecutor<T>, options?: TaskQueueOptions) {
     const { maxTasks = 10, retryAttempts = 3 } = options || {}
@@ -42,11 +43,33 @@ export class TaskQueue<T = any> {
       },
     })
 
-    this.tasks = []
+    this.tasks = new Map<string, Task<T>>()
     this.maxTasks = maxTasks
     this.retryAttempts = retryAttempts
     this.execute = execute
     this.execution = Promise.resolve()
+    this.logger = new Logger(name)
+    this.init()
+  }
+
+  protected async init() {
+    await this.pullTasks()
+    await this.clearCompletedTasks()
+  }
+
+  protected async pullTasks() {
+    const [store] = await this.db.getStore(TASK_QUEUE_TASK_STORE_NAME, 'readonly')
+    const index = store.index('name')
+    const request = index.getAll(IDBKeyRange.only(this.name))
+    const tasks: Task<T>[] = await this.db.resolveRequest(request)
+
+    for (const task of tasks) {
+      if (this.tasks.has(task.id)) {
+        continue
+      }
+
+      this.tasks.set(task.id, task)
+    }
   }
 
   protected generateTaskId() {
@@ -67,44 +90,45 @@ export class TaskQueue<T = any> {
 
   public addTask(data: T) {
     const task = this.genereateTask(data)
-    this.tasks.push(task)
-    debug(`Append task ${task.id}.`, task.data)
+    this.tasks.set(task.id, task)
+    this.logger.debug(`Append task #${task.id}.`)
 
     this.runTasks()
   }
 
   public async runTasks() {
-    const tasksToRun = this.tasks.filter((task) => task.status === 'idle')
-    if (tasksToRun.length === 0) {
-      return
-    }
+    const promise = this.execution.then(async () => {
+      const tasksToRun = Array.from(this.tasks.values()).filter((task) => task.status === 'idle')
+      if (tasksToRun.length === 0) {
+        return
+      }
 
-    debug('Start executing task queue.')
-    return this.execution.then(async () => {
       await this.executeTasks(tasksToRun)
-      await this.runTasks()
     })
+
+    this.execution = promise
+    await promise
   }
 
   protected async executeTask(task: Task<T>) {
-    debug('Task execution started.', task)
+    this.logger.debug(`Task #${task.id} execution started.`)
 
     await this.markTaskAsPending(task)
     await this.execute(task).catch(async (error) => {
-      fail('Task execution fails.', task)
+      this.logger.fail('Task execution fails.')
 
       if (!(task.retryCount < this.retryAttempts)) {
         return Promise.reject(error)
       }
 
-      debug('Retrying failed task.', task)
+      this.logger.debug(`Retrying failed task #${task.id}.`)
       task.retryCount++
       return this.executeTask(task)
     })
 
     await this.markTaskAsCompleted(task)
 
-    debug('Task completed.', task)
+    this.logger.debug(`Task #${task.id} completed.`)
   }
 
   protected async executeTasks(tasks: Task<T>[]) {
@@ -118,11 +142,11 @@ export class TaskQueue<T = any> {
   }
 
   public async retryFailedTasks() {
-    const failedTasks = this.tasks.filter((task) => task.status === 'failed')
+    const failedTasks = Array.from(this.tasks.values()).filter((task) => task.status === 'failed')
     for (const task of failedTasks) {
       if (task.retryCount < this.retryAttempts) {
         task.retryCount++
-        this.tasks.push(task)
+        this.tasks.set(task.id, task)
       }
     }
 
@@ -130,7 +154,7 @@ export class TaskQueue<T = any> {
   }
 
   public async clearCompletedTasks() {
-    const completedTasks = this.tasks.filter((task) => task.status === 'completed')
+    const completedTasks = Array.from(this.tasks.values()).filter((task) => task.status === 'completed')
     for (const task of completedTasks) {
       await this.deleteTask(task)
     }

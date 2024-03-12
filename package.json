@@ -4,11 +4,9 @@
   "description": "FS synchronizes with cloud drive.",
   "author": "DavidJones <qowera@gmail.com>",
   "license": "MIT",
-  "private": true,
   "packageManager": "pnpm@8.15.1",
   "scripts": {
     "commit": "git-cz",
-    "postinstall": "node ./public/scripts/postinstall.mjs",
     "preinstall": "node ./public/scripts/preinstall.mjs",
     "clear": "rimraf --glob ./@*/*/{libs,build,*.tsbuildinfo,tsconfig.build.json} tsconfig.build.json",
     "format": "prettier --config .prettierrc.js --write \"**/*.{js,jsx,ts,tsx,d.ts,vue,md,json,yml,yaml}\"",

@@ -1,6 +1,6 @@
 import mime from 'mime'
 import { isMatch } from 'micromatch'
-import type { GoogleAuthConfig } from '@/libs/GoogleAuth';
+import type { GoogleAuthConfig } from '@/libs/GoogleAuth'
 import { GoogleAuth } from '@/libs/GoogleAuth'
 import { TaskQueue } from '@/libs/TaskQueue'
 import { toUint8Array, joinPath, stringifyFileField, withProgress, type Progress, guid } from '@/utils'
@@ -15,6 +15,7 @@ import {
   GOOGLE_DRIVE_UPLOAD_EVENT,
 } from '@/constants'
 import type { FSFileContent, GDFileFieldKey } from '@/types'
+import { Logger } from './Logger'
 
 export interface GoogleDriveOptions {
   root?: string
@@ -22,6 +23,7 @@ export interface GoogleDriveOptions {
 
 export interface GoogleDriveTaskInfo {
   id: string
+  name: string
   uploadUrl: string
   start: number
   end: number
@@ -55,6 +57,7 @@ export interface UploadOptions {
 }
 
 export class GoogleDrive extends GoogleAuth {
+  protected logger = new Logger('GoogleDrive')
   protected queue
   protected root
 
@@ -99,6 +102,16 @@ export class GoogleDrive extends GoogleAuth {
     return result
   }
 
+  /** 删除文件 */
+  public async rm(file: string) {
+    const fileId = await this.findFileId(file)
+    if (!fileId) {
+      return
+    }
+
+    await this.handleClientResponse(gapi.client.drive.files.delete({ fileId }))
+  }
+
   public async download(name: string, options?: DownloadOptions) {
     const { onProgress } = options || {}
     const fileId = await this.findFileId(name)
@@ -114,19 +127,20 @@ export class GoogleDrive extends GoogleAuth {
     return withProgress(response, onProgress)
   }
 
-  public async upload(name: string, content: FSFileContent, options?: UploadOptions) {
+  public async upload(name: string, content: FSFileContent, options?: Omit<UploadOptions, 'fileId'>) {
     const { onProgress } = options || {}
     const id = guid()
     const source = await toUint8Array(content)
     const totalSize = source.byteLength
     const size = Math.ceil(totalSize / GOOGLE_DRIVE_UPLOAD_CHUNK_SIZE)
-    const uploadUrl = await this.resumableUpload(name, { ...options, byteLength: totalSize })
+    const fileId = await this.findFileId(name)
+    const uploadUrl = await this.resumableUpload(name, { ...options, fileId, byteLength: totalSize })
 
     for (let i = 0; i < size; i++) {
       const start = i * GOOGLE_DRIVE_UPLOAD_CHUNK_SIZE
       const end = Math.min(totalSize, (i + 1) * GOOGLE_DRIVE_UPLOAD_CHUNK_SIZE)
       const body = source.slice(start, end)
-      this.queue.addTask({ id, start, end, body, uploadUrl, totalSize })
+      this.queue.addTask({ id, name, start, end, body, uploadUrl, totalSize })
     }
 
     if (typeof onProgress === 'function') {

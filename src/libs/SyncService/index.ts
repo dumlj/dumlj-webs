@@ -1,7 +1,7 @@
 import { GoogleDrive } from '@/libs/GoogleDrive'
 import { FileSystem } from '@/libs/FileSystem'
 import { TaskQueue } from '@/libs//TaskQueue'
-import { debug } from '@/services/pretty'
+import { Logger } from '@/libs/Logger'
 import { joinPath, toUint8Array } from '@/utils'
 import type { DownloadTask, UploadTask } from './types'
 
@@ -12,6 +12,7 @@ export interface SyncConfiguration {
 
 export class SyncService {
   protected fs = new FileSystem()
+  protected logger = new Logger('Sync')
   protected gd
   protected queue
 
@@ -34,7 +35,12 @@ export class SyncService {
 
         case 'upload': {
           const { content, mimeType } = data
-          await this.gd.upload(name, content, { mimeType })
+          if (content?.byteLength > 0) {
+            await this.gd.upload(name, content, { mimeType })
+            break
+          }
+
+          await this.gd.rm(name)
           break
         }
       }
@@ -42,13 +48,11 @@ export class SyncService {
   }
 
   public async sync() {
+    await this.fs.rm('/abc/abc.txt')
     await this.gd.open()
 
     const { downloads, uploads } = await this.findNeedToSyncFiles()
-    debug(`${downloads.length || 'No'} files need to download and ${uploads.length || 'no'} files need to upload.`, {
-      downloads: downloads.map(({ name }) => name),
-      uploads: uploads.map(({ name }) => name),
-    })
+    this.logger.debug(`${downloads.length || 'No'} files need to download and ${uploads.length || 'no'} files need to upload.`)
 
     for (const file of downloads) {
       this.queue.addTask({ ...file, type: 'download' })
