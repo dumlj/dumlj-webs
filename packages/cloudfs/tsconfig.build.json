@@ -7,12 +7,9 @@
     "declarationDir": "libs",
     "declaration": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     },
     "composite": true
   },
-  "references": [
-  ]
+  "references": []
 }
