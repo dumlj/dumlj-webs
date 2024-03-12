@@ -1,8 +1,28 @@
+import { pathsToModuleNameMapper } from 'ts-jest'
 import type { Config } from '@jest/types'
+import { compilerOptions } from './tsconfig.jest.json'
 
-export default async (): Promise<Config.InitialOptions> => {
-  return {
-    skipFilter: true,
-    projects: [`<rootDir>/jest.config.unittest.ts`, `<rootDir>/jest.config.typetest.ts`],
-  }
-}
+const { paths: tsconfigPaths } = compilerOptions
+
+export default (): Config.InitialOptions => ({
+  preset: 'jest-puppeteer',
+  transform: {
+    '^.+\\.(ts|tsx|js|jsx)$': [
+      'ts-jest',
+      {
+        useESM: true,
+      },
+    ],
+  },
+  globalSetup: '<rootDir>/__tests__/setup.ts',
+  globalTeardown: '<rootDir>/__tests__/teardown.ts',
+  testEnvironment: '<rootDir>/__tests__/puppeteer_environment.ts',
+  testMatch: ['<rootDir>/__tests__/**/*.spec.ts'],
+  modulePathIgnorePatterns: ['<rootDir>/.*/__mocks__'],
+  moduleNameMapper: {
+    ...pathsToModuleNameMapper(tsconfigPaths, {
+      prefix: '<rootDir>',
+    }),
+  },
+  setupFiles: ['<rootDir>/__tests__/setupTests.ts'],
+})

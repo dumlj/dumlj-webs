@@ -18,8 +18,7 @@ export default async (): Promise<Config.InitialOptions> => {
        */
       // prettier-ignore
       ...workspaces.filter((path) => -1 === path.indexOf('__')).flatMap((path) => [
-        `<rootDir>/${path}/jest.config.unittest.ts`,
-        `<rootDir>/${path}/jest.config.typetest.ts`,
+        `<rootDir>/${path}/jest.config.ts`
       ]),
     ],
   }

@@ -11,7 +11,7 @@ export async function withProgress(response: Response, onProgress: (progress: Pr
 
   const reader = response.body.getReader()
   const contentLength = response.headers.get('Content-Length')
-  const totalLength = contentLength ? parseInt(contentLength, 10) : 0
+  const totalLength = contentLength ? parseInt(contentLength, 10) : NaN
   const chunks: Uint8Array[] = []
 
   let loadedSize = 0
@@ -30,13 +30,26 @@ export async function withProgress(response: Response, onProgress: (progress: Pr
     }
   }
 
-  const concated = new Uint8Array(totalLength)
+  if (totalLength) {
+    const concated = new Uint8Array(totalLength)
+
+    let position = 0
+    for (const chunk of chunks) {
+      concated.set(chunk, position)
+      position += chunk.length
+    }
+
+    return concated
+  }
+
+  const finalTotalLength = chunks.reduce((prev, curr) => prev + curr.length, 0)
+  const finalConcated = new Uint8Array(finalTotalLength)
 
   let position = 0
   for (const chunk of chunks) {
-    concated.set(chunk, position)
+    finalConcated.set(chunk, position)
     position += chunk.length
   }
 
-  return concated
+  return finalConcated
 }
