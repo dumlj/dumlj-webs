@@ -7,6 +7,7 @@ const spinnies = new Spinnies()
 const tasks = {
   'Applies a patch to the TypeScript compiler.': 'ts-patch install -s',
   'Install git hook husky to project.': () => husky({ compatible: true }),
+  'Install puppeteer': 'node node_modules/puppeteer/install.mjs'
 }
 
 async function executeCommand(command) {
