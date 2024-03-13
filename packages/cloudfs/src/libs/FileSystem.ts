@@ -7,8 +7,9 @@ import { Logger } from '@/libs/Logger'
 import { Messager } from '@/libs/Messager'
 import type { FSFileContent, FSFile, FSFolder } from '@/types'
 
-export interface WriteFileOptions {
+export interface WriteFileOptions<T> {
   mimeType?: string
+  extras?: T
 }
 
 export interface GlobOptions {
@@ -23,7 +24,7 @@ export type FileSystemOptions = Partial<
   , Readonly<string[]>>
 >
 
-export class FileSystem {
+export class FileSystem<T extends Record<string, any> = Record<string, any>> {
   protected messager = new Messager()
   protected logger = new Logger('FS')
   protected db: IndexedDB
@@ -69,7 +70,7 @@ export class FileSystem {
     })
   }
 
-  public async findFilesByIndex<T extends Record<string, any>>(index: string, value: string) {
+  public async findFilesByIndex(index: string, value: string) {
     const [fileStore] = await this.db.getStore([FS_FILE_STORE_NAME], 'readonly')
     const fileIndex = fileStore.index(index)
     const fileRequest = fileIndex.getAll(IDBKeyRange.only(value))
@@ -77,7 +78,7 @@ export class FileSystem {
     return filesResp
   }
 
-  public async glob<T extends Record<string, any>>(pattern: string | string[], options?: GlobOptions) {
+  public async glob(pattern: string | string[], options?: GlobOptions) {
     const { root = '/' } = options || {}
     const primaryKey = this.resolvePrimaryKey(root)
     const [fileStore] = await this.db.getStore([FS_FILE_STORE_NAME], 'readwrite')
@@ -100,14 +101,14 @@ export class FileSystem {
     return files
   }
 
-  public async readFile<T extends Record<string, any>>(file: string) {
+  public async readFile(file: string) {
     const [store] = await this.db.getStore(FS_FILE_STORE_NAME, 'readonly')
     const primaryKey = this.resolvePrimaryKey(file)
     const result = await this.db.get<FSFile<T>>(store, primaryKey)
     return result
   }
 
-  public async writeFile(file: string, content: FSFileContent, options?: WriteFileOptions) {
+  public async writeFile(file: string, content: FSFileContent, options?: WriteFileOptions<T>) {
     const { dirname: folder } = resolveFile(file)
     const [folderStore, fileStore] = await this.db.getStore([FS_FOLDER_STORE_NAME, FS_FILE_STORE_NAME], 'readwrite')
 
@@ -205,14 +206,14 @@ export class FileSystem {
     return filepath
   }
 
-  protected buildFileWriter(filePath: string, source: FSFileContent, options?: WriteFileOptions) {
+  protected buildFileWriter(filePath: string, source: FSFileContent, options?: WriteFileOptions<T>) {
     return async (store: IDBObjectStore) => {
-      const { mimeType: inputMimeType } = options || {}
+      const { mimeType: inputMimeType, extras = {} } = options || {}
       const { basename: name, dirname: folder, filepath: key, mimeType = inputMimeType } = resolveFile(filePath)
       const lastModified = new Date()
       const content = await toUint8Array(source)
       const md5Checksum = calculateMD5Checksum(content)
-      const fields = { name, content, lastModified, folder, mimeType, md5Checksum }
+      const fields = { name, content, lastModified, folder, mimeType, md5Checksum, ...extras }
 
       await this.db.put(store, fields, key)
       this.logger.debug(`Write to ${filePath}`, fields)
