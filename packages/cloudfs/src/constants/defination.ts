@@ -30,9 +30,6 @@ export const GOOGLE_DRIVE_FILE_FIELDS: GDFileFieldKey[] = ['id', 'name', 'mimeTy
 /* folder mimeType in google drive */
 export const GOOGLE_DRIVE_FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder'
 
-/* name of the database for file system data */
-export const FS_DATABASE = 'fs'
-
 /* the data version of indexedDB */
 export const FS_DATABASE_VERSION = 1
 

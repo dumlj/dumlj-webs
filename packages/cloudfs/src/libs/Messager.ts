@@ -1,5 +1,5 @@
 import { Logger } from '@/libs/Logger'
-import { narrow } from '@/utils'
+import { narrow } from '@/utils/narrow'
 
 export type EventType = string | string[] | Set<string>
 export type Action<T = unknown> = (payload: T) => void

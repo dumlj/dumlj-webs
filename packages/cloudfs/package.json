@@ -21,7 +21,8 @@
     "crypto-js": "^4.2.0",
     "micromatch": "^4.0.5",
     "mime": "^4.0.1",
-    "tslib": "^2.6.2"
+    "tslib": "^2.6.2",
+    "utility-types": "^3.11.0"
   },
   "devDependencies": {
     "ts-jest": "^29.1.1",

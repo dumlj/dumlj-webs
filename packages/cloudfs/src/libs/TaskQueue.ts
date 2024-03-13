@@ -146,7 +146,7 @@ export class TaskQueue<T = any> {
     for (const task of failedTasks) {
       if (task.retryCount < this.retryAttempts) {
         task.retryCount++
-        this.tasks.set(task.id, task)
+        this.tasks.set(task.id, { ...task, status: 'idle' })
       }
     }
 
@@ -186,5 +186,12 @@ export class TaskQueue<T = any> {
   protected async deleteTask(task: Task<T>) {
     const [store] = await this.db.getStore(TASK_QUEUE_TASK_STORE_NAME, 'readwrite')
     await this.db.delete(store, task.id)
+    this.tasks.delete(task.id)
+  }
+
+  public async clear() {
+    for (const task of this.tasks.values()) {
+      await this.deleteTask(task)
+    }
   }
 }

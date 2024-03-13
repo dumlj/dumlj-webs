@@ -6,19 +6,21 @@ import { joinPath, toUint8Array } from '@/utils'
 import type { DownloadTask, UploadTask } from './types'
 
 export interface SyncConfiguration {
+  database: string
   googleClientId: string
   googleApiKey: string
 }
 
 export class SyncService {
-  protected fs = new FileSystem()
+  protected fs: FileSystem
   protected logger = new Logger('Sync')
   protected gd: GoogleDrive
   protected queue: TaskQueue<UploadTask | DownloadTask>
 
   constructor(config: SyncConfiguration) {
-    const { googleApiKey, googleClientId } = config
+    const { database, googleApiKey, googleClientId } = config
 
+    this.fs = new FileSystem(database)
     this.gd = new GoogleDrive({ clientId: googleClientId, apiKey: googleApiKey })
     this.queue = new TaskQueue<UploadTask | DownloadTask>('Sync', async ({ data }) => {
       const { type, name } = data
@@ -41,6 +43,7 @@ export class SyncService {
           }
 
           await this.gd.rm(name)
+          await this.fs.clear(name)
           break
         }
       }
@@ -48,7 +51,6 @@ export class SyncService {
   }
 
   public async sync() {
-    await this.fs.rm('/abc/abc.txt')
     await this.gd.open()
 
     const { downloads, uploads } = await this.findNeedToSyncFiles()
