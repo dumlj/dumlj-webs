@@ -71,9 +71,17 @@ export class SyncService {
   public async download() {
     await this.gd.open()
 
-    const { downloads } = await this.findNeedToSyncFiles()
-    this.logger.debug(`${downloads.length || 'No'} files need to download.`)
+    const files = await this.gd.glob('**/*')
+    const fileMap = new Map(files.map((file) => [joinPath(file.name!), file] as const))
+    const downloads = Array.from(
+      (function* () {
+        for (const [name] of fileMap.entries()) {
+          yield { name, override: true }
+        }
+      })()
+    )
 
+    this.logger.debug(`${downloads.length || 'No'} files need to download.`)
     for (const file of downloads) {
       this.queue.addTask({ ...file, type: 'download' })
     }
@@ -83,9 +91,18 @@ export class SyncService {
   public async upload() {
     await this.gd.open()
 
-    const { uploads } = await this.findNeedToSyncFiles()
-    this.logger.debug(`${uploads.length || 'no'} files need to upload.`)
+    const files = await this.fs.glob('**/*')
+    const fileMap = new Map(files.map((file) => [joinPath(file.folder, file.name), file] as const))
+    const uploads = Array.from(
+      (function* () {
+        for (const [name, localFile] of fileMap.entries()) {
+          const { content, mimeType } = localFile
+          yield { name, override: true, content, mimeType }
+        }
+      })()
+    )
 
+    this.logger.debug(`${uploads.length || 'no'} files need to upload.`)
     for (const file of uploads) {
       this.queue.addTask({ ...file, type: 'upload' })
     }
