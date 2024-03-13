@@ -69,22 +69,22 @@ export class FileSystem {
     })
   }
 
-  public async findFilesByIndex(index: string, value: string) {
+  public async findFilesByIndex<T extends Record<string, any>>(index: string, value: string) {
     const [fileStore] = await this.db.getStore([FS_FILE_STORE_NAME], 'readonly')
     const fileIndex = fileStore.index(index)
     const fileRequest = fileIndex.getAll(IDBKeyRange.only(value))
-    const filesResp = await this.db.resolveRequest<FSFile[]>(fileRequest)
+    const filesResp = await this.db.resolveRequest<FSFile<T>[]>(fileRequest)
     return filesResp
   }
 
-  public async glob(pattern: string | string[], options?: GlobOptions) {
+  public async glob<T extends Record<string, any>>(pattern: string | string[], options?: GlobOptions) {
     const { root = '/' } = options || {}
     const primaryKey = this.resolvePrimaryKey(root)
     const [fileStore] = await this.db.getStore([FS_FILE_STORE_NAME], 'readwrite')
 
     const fileIndex = fileStore.index('folder')
     const fileRequest = fileIndex.getAll(IDBKeyRange.bound(primaryKey, primaryKey + '\uffff'))
-    const filesResp = await this.db.resolveRequest<FSFile[]>(fileRequest)
+    const filesResp = await this.db.resolveRequest<FSFile<T>[]>(fileRequest)
 
     const files = Array.from(
       (function* () {
@@ -100,10 +100,10 @@ export class FileSystem {
     return files
   }
 
-  public async readFile(file: string) {
+  public async readFile<T extends Record<string, any>>(file: string) {
     const [store] = await this.db.getStore(FS_FILE_STORE_NAME, 'readonly')
     const primaryKey = this.resolvePrimaryKey(file)
-    const result = await this.db.get<FSFile>(store, primaryKey)
+    const result = await this.db.get<FSFile<T>>(store, primaryKey)
     return result
   }
 
