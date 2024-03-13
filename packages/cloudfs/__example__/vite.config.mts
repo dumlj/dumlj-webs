@@ -3,13 +3,6 @@ import { defineConfig } from 'vite'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 export default defineConfig({
-  plugins: [
-    nodePolyfills({
-      globals: {
-        process: true,
-      }
-    })
-  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '../src'),
@@ -19,5 +12,12 @@ export default defineConfig({
     headers: {
       'Cross-Origin-Embedder-Policy': 'unsafe-none'
     }
-  }
+  },
+  plugins: [
+    nodePolyfills({
+      globals: {
+        process: true,
+      }
+    })
+  ],
 })
