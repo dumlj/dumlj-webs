@@ -4,6 +4,7 @@ import { TaskQueue } from '@/libs//TaskQueue'
 import { Logger } from '@/libs/Logger'
 import { joinPath, toUint8Array } from '@/utils'
 import type { DownloadTask, UploadTask } from './types'
+import { retryOnAuthError } from '@/decorators/retryOnAuthError'
 
 export interface SyncConfiguration {
   database: string
@@ -50,6 +51,7 @@ export class SyncService {
     })
   }
 
+  @retryOnAuthError
   public async sync() {
     await this.gd.open()
 
@@ -59,6 +61,30 @@ export class SyncService {
     for (const file of downloads) {
       this.queue.addTask({ ...file, type: 'download' })
     }
+
+    for (const file of uploads) {
+      this.queue.addTask({ ...file, type: 'upload' })
+    }
+  }
+
+  @retryOnAuthError
+  public async download() {
+    await this.gd.open()
+
+    const { downloads } = await this.findNeedToSyncFiles()
+    this.logger.debug(`${downloads.length || 'No'} files need to download.`)
+
+    for (const file of downloads) {
+      this.queue.addTask({ ...file, type: 'download' })
+    }
+  }
+
+  @retryOnAuthError
+  public async upload() {
+    await this.gd.open()
+
+    const { uploads } = await this.findNeedToSyncFiles()
+    this.logger.debug(`${uploads.length || 'no'} files need to upload.`)
 
     for (const file of uploads) {
       this.queue.addTask({ ...file, type: 'upload' })
