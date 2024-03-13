@@ -1,7 +1,7 @@
 import { isMatch } from 'micromatch'
 import { IndexedDB } from '@/libs/IndexedDB'
 import { resolveFile, joinPath, toUint8Array, calculateMD5Checksum } from '@/utils'
-import { FS_DATABASE, FS_FILE_STORE_NAME, FS_FILE_STORE_INDEXES, FS_FOLDER_STORE_NAME, FS_FOLDER_STORE_INDEXES, FS_DATABASE_VERSION } from '@/constants'
+import { FS_FILE_STORE_NAME, FS_FILE_STORE_INDEXES, FS_FOLDER_STORE_NAME, FS_FOLDER_STORE_INDEXES, FS_DATABASE_VERSION } from '@/constants'
 import * as EVENTS from '@/constants/event'
 import { Logger } from '@/libs/Logger'
 import { Messager } from '@/libs/Messager'
@@ -15,41 +15,67 @@ export interface GlobOptions {
   root?: string
 }
 
+// prettier-ignore
+export type FileSystemOptions = Partial<
+  Record<
+    | Uncapitalize<`${typeof FS_FILE_STORE_NAME}Indexes`>
+    | Uncapitalize<`${typeof FS_FOLDER_STORE_NAME}Indexes`>
+  , Readonly<string[]>>
+>
+
 export class FileSystem {
   protected messager = new Messager()
   protected logger = new Logger('FS')
-  protected db = new IndexedDB({
-    database: FS_DATABASE,
-    version: FS_DATABASE_VERSION,
-    store: {
-      [FS_FILE_STORE_NAME]: {
-        indexes: Array.from(
-          (function* () {
-            for (const name of FS_FILE_STORE_INDEXES) {
-              yield {
-                name,
-                keyPath: name,
-                options: { unique: false },
+  protected db: IndexedDB
+
+  constructor(name: string, options?: FileSystemOptions) {
+    const { filesIndexes = [], foldersIndexes = [] } = options || {}
+
+    if (typeof name !== 'string') {
+      throw new Error(`Database of indexdb must not be empty`)
+    }
+
+    this.db = new IndexedDB({
+      database: name,
+      version: FS_DATABASE_VERSION,
+      store: {
+        [FS_FILE_STORE_NAME]: {
+          indexes: Array.from(
+            (function* () {
+              for (const name of [...FS_FILE_STORE_INDEXES, ...filesIndexes]) {
+                yield {
+                  name,
+                  keyPath: name,
+                  options: { unique: false },
+                }
               }
-            }
-          })()
-        ),
-      },
-      [FS_FOLDER_STORE_NAME]: {
-        indexes: Array.from(
-          (function* () {
-            for (const name of FS_FOLDER_STORE_INDEXES) {
-              yield {
-                name,
-                keyPath: name,
-                options: { unique: false },
+            })()
+          ),
+        },
+        [FS_FOLDER_STORE_NAME]: {
+          indexes: Array.from(
+            (function* () {
+              for (const name of [...FS_FOLDER_STORE_INDEXES, ...foldersIndexes]) {
+                yield {
+                  name,
+                  keyPath: name,
+                  options: { unique: false },
+                }
               }
-            }
-          })()
-        ),
+            })()
+          ),
+        },
       },
-    },
-  })
+    })
+  }
+
+  public async findFilesByIndex(index: string, value: string) {
+    const [fileStore] = await this.db.getStore([FS_FILE_STORE_NAME], 'readonly')
+    const fileIndex = fileStore.index(index)
+    const fileRequest = fileIndex.getAll(IDBKeyRange.only(value))
+    const filesResp = await this.db.resolveRequest<FSFile[]>(fileRequest)
+    return filesResp
+  }
 
   public async glob(pattern: string | string[], options?: GlobOptions) {
     const { root = '/' } = options || {}
@@ -59,6 +85,7 @@ export class FileSystem {
     const fileIndex = fileStore.index('folder')
     const fileRequest = fileIndex.getAll(IDBKeyRange.bound(primaryKey, primaryKey + '\uffff'))
     const filesResp = await this.db.resolveRequest<FSFile[]>(fileRequest)
+
     const files = Array.from(
       (function* () {
         for (const file of filesResp) {
@@ -76,7 +103,8 @@ export class FileSystem {
   public async readFile(file: string) {
     const [store] = await this.db.getStore(FS_FILE_STORE_NAME, 'readonly')
     const primaryKey = this.resolvePrimaryKey(file)
-    return this.db.get<FSFile>(store, primaryKey)
+    const result = await this.db.get<FSFile>(store, primaryKey)
+    return result
   }
 
   public async writeFile(file: string, content: FSFileContent, options?: WriteFileOptions) {
@@ -94,9 +122,16 @@ export class FileSystem {
 
   public async rm(file: string) {
     await this.writeFile(file, null)
-    this.logger.debug(`Delete file ${file}`)
 
+    this.logger.debug(`Delete file ${file}`)
     this.messager.dispatchEvent(EVENTS.FS_RM_EVENT, { file })
+  }
+
+  public async clear(file: string) {
+    const primaryKey = this.resolvePrimaryKey(file)
+    const [fileStore] = await this.db.getStore(FS_FILE_STORE_NAME, 'readwrite')
+    const request = fileStore.delete(primaryKey)
+    await this.db.resolveRequest(request)
   }
 
   public async readdir(path: string) {
@@ -193,5 +228,9 @@ export class FileSystem {
       await this.db.put(store, fields, key)
       this.logger.debug(`Write to ${folder}`, fields)
     }
+  }
+
+  public joinPath(...path: string[]) {
+    return joinPath(...path)
   }
 }

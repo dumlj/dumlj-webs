@@ -74,6 +74,10 @@ export class IndexedDB {
     })
   }
 
+  public close() {
+    this.db && this.db.close()
+  }
+
   /** 初始化数据表 */
   public initStores(stores: IndexedDBStoreOptions) {
     if (!this.db) {

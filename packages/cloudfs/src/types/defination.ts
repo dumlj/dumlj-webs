@@ -1,3 +1,5 @@
+import type { Assign } from 'utility-types'
+
 export interface GDFileField {
   /* 表示此资源的类型。对于 Drive API，此值始终为 drive#file。 */
   kind: string
@@ -99,15 +101,18 @@ export type GDFileFieldKey = keyof GDFileField
 
 export type FSFileContent = string | number | ArrayBuffer | Uint8Array | Blob | null
 
-export interface FSFile {
-  name: string
-  size: number
-  content: Uint8Array
-  mimeType: `${string}/${string}`
-  folder: string
-  lastModified: Date
-  md5Checksum: string
-}
+export type FSFile<T = Record<never, unknown>> = Assign<
+  {
+    name: string
+    size: number
+    content: Uint8Array
+    mimeType: `${string}/${string}`
+    folder: string
+    lastModified: Date
+    md5Checksum: string
+  },
+  T extends Record<string, any> ? T : never
+>
 
 export type FSFileKey = keyof FSFile
 
