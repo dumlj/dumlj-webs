@@ -75,11 +75,6 @@ export class SyncService {
 
   @retryOnAuthError
   public async download() {
-    if (!this.isAuthorized) {
-      this.logger.warn('Unauthorized, please authorize first.')
-      return
-    }
-
     await this.gd.open()
 
     const files = await this.gd.glob('**/*')
@@ -100,11 +95,6 @@ export class SyncService {
 
   @retryOnAuthError
   public async upload() {
-    if (!this.isAuthorized) {
-      this.logger.warn('Unauthorized, please authorize first.')
-      return
-    }
-
     await this.gd.open()
 
     const files = await this.fs.glob('**/*')
