@@ -115,11 +115,12 @@ export class SyncService {
   }
 
   public onAuthChanged(action: Action<GoogleAuthoryEventDetail>) {
+    const deprecated = this.gd.onAuthChanged(action)
     if (typeof gapi?.client === 'undefined') {
       this.gd.ping()
     }
 
-    return this.gd.onAuthChanged(action)
+    return deprecated
   }
 
   protected async findNeedToSyncFiles() {

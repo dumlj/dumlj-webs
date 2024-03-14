@@ -76,11 +76,6 @@ export class GoogleAuth {
         this.messager.dispatchEvent(GOOGLE_DRIVE_AUTH_EVENT, detail)
       },
     })
-
-    this.requestAccessToken().then(async (accessToken) => {
-      await this.setAccessToken(accessToken)
-      this.messager.dispatchEvent<GoogleAuthoryEventDetail>(GOOGLE_DRIVE_AUTHORY_CHANGED_EVENT, { authorized: true })
-    })
   }
 
   public async open() {
@@ -90,6 +85,7 @@ export class GoogleAuth {
 
   public async ping() {
     if (!this.accessToken) {
+      this.messager.dispatchEvent<GoogleAuthoryEventDetail>(GOOGLE_DRIVE_AUTHORY_CHANGED_EVENT, { authorized: false })
       return false
     }
 
