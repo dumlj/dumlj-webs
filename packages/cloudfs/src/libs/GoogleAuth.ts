@@ -91,8 +91,14 @@ export class GoogleAuth {
 
     const response = await fetch(GOOGLE_DRIVE_CHECK_ACCESS_TOKEN_URL`${this.accessToken}`)
     const isAuthorized = response.status === 200
-    isAuthorized === false && this.clearAccessToken()
-    return isAuthorized
+    if (isAuthorized === false) {
+      this.clearAccessToken()
+      this.messager.dispatchEvent<GoogleAuthoryEventDetail>(GOOGLE_DRIVE_AUTHORY_CHANGED_EVENT, { authorized: false })
+      return false
+    }
+
+    this.messager.dispatchEvent<GoogleAuthoryEventDetail>(GOOGLE_DRIVE_AUTHORY_CHANGED_EVENT, { authorized: true })
+    return true
   }
 
   public onAuthChanged(action: Action<GoogleAuthoryEventDetail>) {
