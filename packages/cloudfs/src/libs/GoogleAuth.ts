@@ -80,7 +80,7 @@ export class GoogleAuth {
 
   public async open() {
     const accessToken = await this.requestAccessToken()
-    this.setAccessToken(accessToken)
+    await this.setAccessToken(accessToken)
   }
 
   public async ping() {
