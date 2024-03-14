@@ -88,12 +88,11 @@ export class TaskQueue<T = any> {
     }
   }
 
-  public addTask(data: T) {
+  public async addTask(data: T) {
     const task = this.genereateTask(data)
     this.tasks.set(task.id, task)
     this.logger.debug(`Append task #${task.id}.`)
-
-    this.runTasks()
+    await this.runTasks()
   }
 
   public async runTasks() {
