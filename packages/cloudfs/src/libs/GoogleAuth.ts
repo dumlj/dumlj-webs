@@ -1,6 +1,12 @@
 import { Logger } from '@/libs/Logger'
-import { GOOGLE_DRIVE_ACCESS_TOKEN_LOCALSTORAGE_NAME, GOOGLE_DRIVE_API_URL, GOOGLE_DRIVE_AUTH_EVENT } from '@/constants'
-import { Messager } from './Messager'
+import { Messager, type Action } from '@/libs/Messager'
+import {
+  GOOGLE_DRIVE_ACCESS_TOKEN_LOCALSTORAGE_NAME,
+  GOOGLE_DRIVE_API_URL,
+  GOOGLE_DRIVE_AUTHORY_CHANGED_EVENT,
+  GOOGLE_DRIVE_AUTH_EVENT,
+  GOOGLE_DRIVE_CHECK_ACCESS_TOKEN_URL,
+} from '@/constants'
 
 export interface AccessToken {
   accessToken: string
@@ -11,6 +17,10 @@ export interface GoogleAuthConfig {
   clientId: string
   apiKey: string
   scope: string
+}
+
+export interface GoogleAuthoryEventDetail {
+  authorized: boolean
 }
 
 export class GoogleAuth {
@@ -36,6 +46,10 @@ export class GoogleAuth {
 
     const { access_token: accessToken } = result
     return accessToken
+  }
+
+  public get isAuthorized() {
+    return !!this.accessToken
   }
 
   constructor(config: GoogleAuthConfig) {
@@ -65,12 +79,28 @@ export class GoogleAuth {
 
     this.requestAccessToken().then(async (accessToken) => {
       await this.setAccessToken(accessToken)
+      this.messager.dispatchEvent<GoogleAuthoryEventDetail>(GOOGLE_DRIVE_AUTHORY_CHANGED_EVENT, { authorized: true })
     })
   }
 
   public async open() {
     const accessToken = await this.requestAccessToken()
     this.setAccessToken(accessToken)
+  }
+
+  public async ping() {
+    if (!this.accessToken) {
+      return false
+    }
+
+    const response = await fetch(GOOGLE_DRIVE_CHECK_ACCESS_TOKEN_URL`${this.accessToken}`)
+    const isAuthorized = response.status === 200
+    isAuthorized === false && this.clearAccessToken()
+    return isAuthorized
+  }
+
+  public onAuthChanged(action: Action<GoogleAuthoryEventDetail>) {
+    return this.messager.addEventListener<GoogleAuthoryEventDetail>(GOOGLE_DRIVE_AUTHORY_CHANGED_EVENT, action)
   }
 
   protected async setAccessToken(accessToken: string) {
@@ -136,39 +166,8 @@ export class GoogleAuth {
 
   protected clearAccessToken() {
     localStorage.removeItem(GOOGLE_DRIVE_ACCESS_TOKEN_LOCALSTORAGE_NAME)
-    gapi.client.setToken(null)
+    gapi?.client?.setToken(null)
+    this.messager.dispatchEvent<GoogleAuthoryEventDetail>(GOOGLE_DRIVE_AUTHORY_CHANGED_EVENT, { authorized: false })
     this.logger.debug('Clear access token')
   }
-
-  // public async refreshToken() {
-  //   const response = await fetch('http://localhost:3000/api/oauth', { method: 'GET' })
-  //   const { url } = await response.json()
-  //   const opener = window.open(url, 'cloudfs', 'width=600,height=600,toolbar=no,location=no')
-
-  //   interface Payload {
-  //     type: string
-  //     data: {
-  //       access_token: string
-  //       expires_in: number
-  //     }
-  //   }
-
-  //   const handleBeforeunload = () => {
-  //     opener?.close()
-  //   }
-
-  //   const handleMessage = (event: MessageEvent<Payload>) => {
-  //     if (event.source === opener) {
-  //       const { access_token: accessToken, expires_in: expired } = event.data?.data
-  //       console.log({ event, accessToken, expired })
-  //       saveAccessToken(accessToken, expired)
-
-  //       window.removeEventListener('unload', handleBeforeunload)
-  //       window.removeEventListener('message', handleMessage)
-  //     }
-  //   }
-
-  //   window.addEventListener('unload', handleBeforeunload)
-  //   window.addEventListener('message', handleMessage)
-  // }
 }

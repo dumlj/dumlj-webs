@@ -10,6 +10,9 @@ export const GOOGLE_DRIVE_UPLOAD_URL = (_: TemplateStringsArray, fileId?: string
 /* url of google drive download */
 export const GOOGLE_DRIVE_DOWNLOAD_URL = (_: TemplateStringsArray, fileId: string) => `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`
 
+/* check access token */
+export const GOOGLE_DRIVE_CHECK_ACCESS_TOKEN_URL = (_: TemplateStringsArray, accessToken: string) => `https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${accessToken}`
+
 /* discovery doc for google drive api */
 export const GOOGLE_DRIVE_DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
 
