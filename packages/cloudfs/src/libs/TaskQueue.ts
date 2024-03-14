@@ -24,7 +24,7 @@ export class TaskQueue<T = any> {
     const { maxTasks = 10, retryAttempts = 3 } = options || {}
     this.name = name
     this.db = new IndexedDB({
-      database: TASK_QUEUE_DATABASE,
+      database: `${name}${TASK_QUEUE_DATABASE}`,
       version: TASK_QUEUE_DATABASE_VERSION,
       store: {
         [TASK_QUEUE_TASK_STORE_NAME]: {

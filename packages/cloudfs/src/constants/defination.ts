@@ -49,7 +49,7 @@ export const FS_FOLDER_STORE_NAME = 'Folders'
 export const FS_FOLDER_STORE_INDEXES: FSFolderKey[] = ['name', 'parent', 'lastModified']
 
 /* name of the database for task queue data */
-export const TASK_QUEUE_DATABASE = 'queue'
+export const TASK_QUEUE_DATABASE = '@cloudfs/queue'
 
 /* the data version of indexedDB */
 export const TASK_QUEUE_DATABASE_VERSION = 1
