@@ -77,9 +77,7 @@ export class SyncService {
     )
 
     this.logger.debug(`${downloads.length || 'No'} files need to download.`)
-    for (const file of downloads) {
-      this.queue.addTask({ ...file, type: 'download' })
-    }
+    await Promise.all(downloads.map((file) => this.queue.addTask({ ...file, type: 'download' })))
   }
 
   @retryOnAuthError
@@ -98,9 +96,7 @@ export class SyncService {
     )
 
     this.logger.debug(`${uploads.length || 'no'} files need to upload.`)
-    for (const file of uploads) {
-      this.queue.addTask({ ...file, type: 'upload' })
-    }
+    await Promise.all(uploads.map((file) => this.queue.addTask({ ...file, type: 'upload' })))
   }
 
   @retryOnAuthError
@@ -110,13 +106,7 @@ export class SyncService {
     const { downloads, uploads } = await this.findNeedToSyncFiles()
     this.logger.debug(`${downloads.length || 'No'} files need to download and ${uploads.length || 'no'} files need to upload.`)
 
-    for (const file of downloads) {
-      this.queue.addTask({ ...file, type: 'download' })
-    }
-
-    for (const file of uploads) {
-      this.queue.addTask({ ...file, type: 'upload' })
-    }
+    await Promise.all([...downloads.map((file) => this.queue.addTask({ ...file, type: 'download' })), ...uploads.map((file) => this.queue.addTask({ ...file, type: 'upload' }))])
   }
 
   public onAuthChanged(action: Action<GoogleAuthoryEventDetail>) {
