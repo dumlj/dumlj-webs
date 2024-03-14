@@ -2,9 +2,11 @@ import { GoogleDrive } from '@/libs/GoogleDrive'
 import { FileSystem } from '@/libs/FileSystem'
 import { TaskQueue } from '@/libs//TaskQueue'
 import { Logger } from '@/libs/Logger'
+import { type GoogleAuthoryEventDetail } from '@/libs/GoogleAuth'
+import { type Action } from '@/libs/Messager'
+import { retryOnAuthError } from '@/decorators/retryOnAuthError'
 import { joinPath, toUint8Array } from '@/utils'
 import type { DownloadTask, UploadTask } from './types'
-import { retryOnAuthError } from '@/decorators/retryOnAuthError'
 
 export interface SyncConfiguration {
   database: string
@@ -17,6 +19,10 @@ export class SyncService {
   protected logger = new Logger('Sync')
   protected gd: GoogleDrive
   protected queue: TaskQueue<UploadTask | DownloadTask>
+
+  public get isAuthorized() {
+    return this.gd.isAuthorized
+  }
 
   constructor(config: SyncConfiguration) {
     const { database, googleApiKey, googleClientId } = config
@@ -69,6 +75,11 @@ export class SyncService {
 
   @retryOnAuthError
   public async download() {
+    if (!this.isAuthorized) {
+      this.logger.warn('Unauthorized, please authorize first.')
+      return
+    }
+
     await this.gd.open()
 
     const files = await this.gd.glob('**/*')
@@ -89,6 +100,11 @@ export class SyncService {
 
   @retryOnAuthError
   public async upload() {
+    if (!this.isAuthorized) {
+      this.logger.warn('Unauthorized, please authorize first.')
+      return
+    }
+
     await this.gd.open()
 
     const files = await this.fs.glob('**/*')
@@ -106,6 +122,14 @@ export class SyncService {
     for (const file of uploads) {
       this.queue.addTask({ ...file, type: 'upload' })
     }
+  }
+
+  public onAuthChanged(action: Action<GoogleAuthoryEventDetail>) {
+    if (typeof gapi?.client === 'undefined') {
+      this.gd.ping()
+    }
+
+    return this.gd.onAuthChanged(action)
   }
 
   protected async findNeedToSyncFiles() {
