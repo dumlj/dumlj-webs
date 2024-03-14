@@ -85,7 +85,7 @@ export class GoogleAuth {
 
   public async ping() {
     if (!this.accessToken) {
-      this.messager.dispatchEvent<GoogleAuthoryEventDetail>(GOOGLE_DRIVE_AUTHORY_CHANGED_EVENT, { authorized: false })
+      this.emitAuthorized(false)
       return false
     }
 
@@ -93,11 +93,10 @@ export class GoogleAuth {
     const isAuthorized = response.status === 200
     if (isAuthorized === false) {
       this.clearAccessToken()
-      this.messager.dispatchEvent<GoogleAuthoryEventDetail>(GOOGLE_DRIVE_AUTHORY_CHANGED_EVENT, { authorized: false })
       return false
     }
 
-    this.messager.dispatchEvent<GoogleAuthoryEventDetail>(GOOGLE_DRIVE_AUTHORY_CHANGED_EVENT, { authorized: true })
+    this.emitAuthorized(true)
     return true
   }
 
@@ -164,12 +163,18 @@ export class GoogleAuth {
   protected saveAccessToken(accessToken: string, expired?: number) {
     const data = JSON.stringify({ accessToken, expired })
     localStorage.setItem(GOOGLE_DRIVE_ACCESS_TOKEN_LOCALSTORAGE_NAME, data)
+    this.emitAuthorized(true)
   }
 
   protected clearAccessToken() {
     localStorage.removeItem(GOOGLE_DRIVE_ACCESS_TOKEN_LOCALSTORAGE_NAME)
     gapi?.client?.setToken(null)
-    this.messager.dispatchEvent<GoogleAuthoryEventDetail>(GOOGLE_DRIVE_AUTHORY_CHANGED_EVENT, { authorized: false })
+    this.emitAuthorized(false)
+
     this.logger.debug('Clear access token')
+  }
+
+  protected emitAuthorized(authorized: boolean) {
+    this.messager.dispatchEvent<GoogleAuthoryEventDetail>(GOOGLE_DRIVE_AUTHORY_CHANGED_EVENT, { authorized })
   }
 }
