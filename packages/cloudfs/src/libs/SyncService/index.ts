@@ -58,19 +58,8 @@ export class SyncService {
   }
 
   @retryOnAuthError
-  public async sync() {
+  public async open() {
     await this.gd.open()
-
-    const { downloads, uploads } = await this.findNeedToSyncFiles()
-    this.logger.debug(`${downloads.length || 'No'} files need to download and ${uploads.length || 'no'} files need to upload.`)
-
-    for (const file of downloads) {
-      this.queue.addTask({ ...file, type: 'download' })
-    }
-
-    for (const file of uploads) {
-      this.queue.addTask({ ...file, type: 'upload' })
-    }
   }
 
   @retryOnAuthError
@@ -109,6 +98,22 @@ export class SyncService {
     )
 
     this.logger.debug(`${uploads.length || 'no'} files need to upload.`)
+    for (const file of uploads) {
+      this.queue.addTask({ ...file, type: 'upload' })
+    }
+  }
+
+  @retryOnAuthError
+  public async sync() {
+    await this.gd.open()
+
+    const { downloads, uploads } = await this.findNeedToSyncFiles()
+    this.logger.debug(`${downloads.length || 'No'} files need to download and ${uploads.length || 'no'} files need to upload.`)
+
+    for (const file of downloads) {
+      this.queue.addTask({ ...file, type: 'download' })
+    }
+
     for (const file of uploads) {
       this.queue.addTask({ ...file, type: 'upload' })
     }
