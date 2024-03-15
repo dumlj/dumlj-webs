@@ -59,3 +59,7 @@ export const TASK_QUEUE_TASK_STORE_NAME = 'Tasks'
 
 /* indexes for task queue data */
 export const TASK_QUEUE_TASK_STORE_INDEXES: TaskKey[] = ['name', 'status']
+
+export const SCRIPT_GOOGLE_API = 'https://apis.google.com/js/api.js'
+
+export const SCRIPT_GOOGLE_GIS_CLIENT = 'https://accounts.google.com/gsi/client'

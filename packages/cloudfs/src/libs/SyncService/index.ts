@@ -4,7 +4,7 @@ import { TaskQueue } from '@/libs//TaskQueue'
 import { Logger } from '@/libs/Logger'
 import { type GoogleAuthoryEventDetail } from '@/libs/GoogleAuth'
 import { type Action } from '@/libs/Messager'
-import { retryOnAuthError } from '@/decorators/retryOnAuthError'
+import { retryOnAuthError, awaitGoogleClient } from '@/decorators'
 import { joinPath, toUint8Array } from '@/utils'
 import type { DownloadTask, UploadTask } from './types'
 
@@ -109,6 +109,7 @@ export class SyncService {
     await Promise.all([...downloads.map((file) => this.queue.addTask({ ...file, type: 'download' })), ...uploads.map((file) => this.queue.addTask({ ...file, type: 'upload' }))])
   }
 
+  @awaitGoogleClient
   public onAuthChanged(action: Action<GoogleAuthoryEventDetail>) {
     const deprecated = this.gd.onAuthChanged(action)
     if (typeof gapi?.client === 'undefined') {

@@ -1,3 +1,5 @@
+export const GOOGLE_CLIENT_READY_EVENT = 'GOOGLE_CLIENT_READY_EVENT'
+
 /** request token event type */
 export const GOOGLE_DRIVE_AUTH_EVENT = 'GOOGLE_DRIVE_AUTH_EVENT'
 
