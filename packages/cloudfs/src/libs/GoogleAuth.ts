@@ -7,6 +7,7 @@ import {
   GOOGLE_DRIVE_AUTH_EVENT,
   GOOGLE_DRIVE_CHECK_ACCESS_TOKEN_URL,
 } from '@/constants'
+import { awaitGoogleClient } from '@/decorators/awaitGoogleClient'
 
 export interface AccessToken {
   accessToken: string
@@ -25,6 +26,8 @@ export interface GoogleAuthoryEventDetail {
 
 export class GoogleAuth {
   protected apiKey: string
+  protected clientId: string
+  protected scope: string
   protected tokenClient: google.accounts.oauth2.TokenClient
   protected messager = new Messager({ speaker: window })
   protected logger = new Logger('GoogleAuth')
@@ -54,7 +57,6 @@ export class GoogleAuth {
 
   constructor(config: GoogleAuthConfig) {
     const { clientId, apiKey, scope } = config
-
     if (!apiKey) {
       throw new Error('"apiKey" is not defined.')
     }
@@ -63,10 +65,18 @@ export class GoogleAuth {
       throw new Error('"clientId" is not defined.')
     }
 
+    this.clientId = clientId
     this.apiKey = apiKey
+    this.scope = scope
+
+    this.initTokenClient()
+  }
+
+  @awaitGoogleClient
+  protected async initTokenClient() {
     this.tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: clientId,
-      scope: scope,
+      client_id: this.clientId,
+      scope: this.scope,
       callback: ({ error, access_token: accessToken }) => {
         if (error !== undefined) {
           throw new Error(error)
@@ -78,6 +88,7 @@ export class GoogleAuth {
     })
   }
 
+  @awaitGoogleClient
   public async open() {
     const accessToken = await this.requestAccessToken()
     await this.setAccessToken(accessToken)
