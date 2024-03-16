@@ -64,14 +64,22 @@ export class SyncService {
 
   @retryOnAuthError
   public async download() {
-    await this.gd.open()
+    const remotes = await this.gd.glob('**/*')
+    const locals = await this.fs.glob('**/*')
 
-    const files = await this.gd.glob('**/*')
-    const fileMap = new Map(files.map((file) => [joinPath(file.name!), file] as const))
+    const remoteMap = new Map(remotes.map((file) => [joinPath(file.name!), file] as const))
+    const localMap = new Map(locals.map((file) => [joinPath(file.folder, file.name), file] as const))
+
     const downloads = Array.from(
       (function* () {
-        for (const [name] of fileMap.entries()) {
-          yield { name, override: true }
+        for (const [name, remoteFile] of remoteMap.entries()) {
+          const localFile = localMap.get(name)
+          if (remoteFile.md5Checksum === localFile?.md5Checksum) {
+            continue
+          }
+
+          const { mimeType } = remoteFile
+          yield { name, override: true, mimeType }
         }
       })()
     )
@@ -82,13 +90,20 @@ export class SyncService {
 
   @retryOnAuthError
   public async upload() {
-    await this.gd.open()
+    const remotes = await this.gd.glob('**/*')
+    const locals = await this.fs.glob('**/*')
 
-    const files = await this.fs.glob('**/*')
-    const fileMap = new Map(files.map((file) => [joinPath(file.folder, file.name), file] as const))
+    const remoteMap = new Map(remotes.map((file) => [joinPath(file.name!), file] as const))
+    const localMap = new Map(locals.map((file) => [joinPath(file.folder, file.name), file] as const))
+
     const uploads = Array.from(
       (function* () {
-        for (const [name, localFile] of fileMap.entries()) {
+        for (const [name, localFile] of localMap.entries()) {
+          const remoteFile = remoteMap.get(name)
+          if (remoteFile?.md5Checksum === localFile.md5Checksum) {
+            continue
+          }
+
           const { content, mimeType } = localFile
           yield { name, override: true, content, mimeType }
         }
