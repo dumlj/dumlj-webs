@@ -20,7 +20,7 @@
   "dependencies": {
     "crypto-js": "^4.2.0",
     "micromatch": "^4.0.5",
-    "mime": "^4.0.1",
+    "mrmime": "^2.0.0",
     "tslib": "^2.6.2",
     "utility-types": "^3.11.0"
   },

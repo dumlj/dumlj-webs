@@ -7,7 +7,7 @@ const { paths: tsconfigPaths } = compilerOptions
 export default (): Config.InitialOptions => ({
   preset: 'jest-puppeteer',
   transform: {
-    '^.+\\.(ts|tsx|js|jsx)$': [
+    '^.+\\.(t|j)sx?$': [
       'ts-jest',
       {
         useESM: true,

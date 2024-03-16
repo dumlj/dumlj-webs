@@ -1,4 +1,4 @@
-import mime from 'mime'
+import { lookup } from 'mrmime'
 import { isMatch } from 'micromatch'
 import type { GoogleAuthConfig } from '@/libs/GoogleAuth'
 import { GoogleAuth } from '@/libs/GoogleAuth'
@@ -165,7 +165,7 @@ export class GoogleDrive extends GoogleAuth {
         return { mimeType: undefined, body: undefined }
       }
 
-      const mimeType = inputMimeType || mime.getType(name) || 'text/plain'
+      const mimeType = inputMimeType || lookup(name) || 'text/plain'
       const parents = [parentId]
       const body = JSON.stringify({ name, mimeType, parents })
       return { mimeType, body }

@@ -15,8 +15,8 @@
     "format": "prettier --config .prettierrc.js --write \"**/*.{js,jsx,ts,tsx,d.ts,vue,md,json,yml,yaml}\"",
     "lint": "eslint --fix .",
     "compile": "tsc --build ./tsconfig.build.json",
-    "test": "jest -c ./jest.config.ts --coverage",
-    "dev": "jest -c ./jest.config.ts --watch",
+    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" && jest -c ./jest.config.ts --coverage",
+    "dev": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" && jest -c ./jest.config.ts --watch",
     "ok": "pnpm format && pnpm lint && pnpm compile && pnpm test"
   },
   "workspaces": [
@@ -39,6 +39,7 @@
     "@types/micromatch": "^4.0.6",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
     "@typescript-eslint/parser": "^7.2.0",
+    "babel-jest": "^29.7.0",
     "chalk": "^4.1.2",
     "commitizen": "^4.3.0",
     "commitlint-plugin-i18n": "0.0.1-alpha.3",
@@ -55,6 +56,7 @@
     "jest-junit": "^16.0.0",
     "jest-puppeteer": "^10.0.1",
     "jest-runner-tsd": "^6.0.0",
+    "lerna": "^7.4.2",
     "lint-staged": "^15.2.2",
     "prettier": "^3.2.5",
     "pretty-error": "^4.0.0",
@@ -68,7 +70,6 @@
     "ts-patch": "^3.1.2",
     "tslib": "^2.6.2",
     "typescript": "^5.4.2",
-    "typescript-transform-paths": "^3.4.7",
-    "lerna": "^7.4.2"
+    "typescript-transform-paths": "^3.4.7"
   }
 }

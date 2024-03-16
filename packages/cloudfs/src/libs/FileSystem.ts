@@ -78,6 +78,16 @@ export class FileSystem<T extends Record<string, any> = Record<string, any>> {
     return filesResp
   }
 
+  public async diff(file: string, source: FSFileContent) {
+    const target = await this.readFile(file)
+    if (!(target && 'md5Checksum' in target)) {
+      return true
+    }
+
+    const content = await toUint8Array(source)
+    return target.md5Checksum !== calculateMD5Checksum(content)
+  }
+
   public async glob(pattern: string | string[], options?: GlobOptions) {
     const { root = '/' } = options || {}
     const primaryKey = this.resolvePrimaryKey(root)

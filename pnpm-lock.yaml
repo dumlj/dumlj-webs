@@ -53,6 +53,9 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^7.2.0
         version: 7.2.0(eslint@8.57.0)(typescript@5.4.2)
+      babel-jest:
+        specifier: ^29.7.0
+        version: 29.7.0(@babel/core@7.24.0)
       chalk:
         specifier: ^4.1.2
         version: 4.1.2
@@ -127,7 +130,7 @@ importers:
         version: 0.5.1
       ts-jest:
         specifier: ^29.1.2
-        version: 29.1.2(@babel/core@7.24.0)(@jest/types@29.6.3)(jest@29.7.0)(typescript@5.4.2)
+        version: 29.1.2(@babel/core@7.24.0)(@jest/types@29.6.3)(babel-jest@29.7.0)(jest@29.7.0)(typescript@5.4.2)
       ts-lib:
         specifier: ^0.0.5
         version: 0.0.5
@@ -155,9 +158,9 @@ importers:
       micromatch:
         specifier: ^4.0.5
         version: 4.0.5
-      mime:
-        specifier: ^4.0.1
-        version: 4.0.1
+      mrmime:
+        specifier: ^2.0.0
+        version: 2.0.0
       tslib:
         specifier: ^2.6.2
         version: 2.6.2
@@ -179,7 +182,7 @@ importers:
         version: 22.4.1(typescript@5.4.2)
       ts-jest:
         specifier: ^29.1.1
-        version: 29.1.2(@babel/core@7.24.0)(@jest/types@29.6.3)(jest@29.7.0)(typescript@5.4.2)
+        version: 29.1.2(@babel/core@7.24.0)(@jest/types@29.6.3)(babel-jest@29.7.0)(jest@29.7.0)(typescript@5.4.2)
 
   packages/cloudfs/__example__:
     dependencies:
@@ -1421,8 +1424,8 @@ packages:
       '@types/gapi.client.discovery-v1': 0.0.4
     dev: true
 
-  /@maxim_mazurok/gapi.client.drive-v3@0.0.20240304:
-    resolution: {integrity: sha512-PuGvDvRE70XsyUqnQCq5M2VJ7/E7u5pDvHZfBXunVlf5mYmkyAdbZg+ygJDJ2243wWpUXjmEcuxLDY2yamIq4g==}
+  /@maxim_mazurok/gapi.client.drive-v3@0.0.20240310:
+    resolution: {integrity: sha512-bmdAmCxG0ImZ4/SBQzt//K7p3dl+8NyyviNwT1Wm04BFU5aflRUwEzvES3AHLw2Q46CpxR71Fi00Tl3GXAHJrw==}
     dependencies:
       '@types/gapi.client': 1.0.8
       '@types/gapi.client.discovery-v1': 0.0.4
@@ -2245,7 +2248,7 @@ packages:
     resolution: {integrity: sha512-qEfI0LxUBadOLmym4FkaNGpI4ibBCBPJHiUFWKIv0GIp7yKT2d+wztJYKr9giIRecErUCF+jGSDw1fzTZ6hPVQ==}
     deprecated: use @types/gapi.client.drive-v3 instead; see https://github.com/Maxim-Mazurok/google-api-typings-generator/issues/652 for details
     dependencies:
-      '@maxim_mazurok/gapi.client.drive-v3': 0.0.20240304
+      '@maxim_mazurok/gapi.client.drive-v3': 0.0.20240310
     dev: true
 
   /@types/gapi.client@1.0.8:
@@ -7374,12 +7377,6 @@ packages:
       mime-db: 1.52.0
     dev: true
 
-  /mime@4.0.1:
-    resolution: {integrity: sha512-5lZ5tyrIfliMXzFtkYyekWbtRXObT9OWa8IwQ5uxTBDHucNNwniRqo0yInflj+iYi5CBa6qxadGzGarDfuEOxA==}
-    engines: {node: '>=16'}
-    hasBin: true
-    dev: false
-
   /mimic-fn@1.2.0:
     resolution: {integrity: sha512-jf84uxzwiuiIVKiOLpfYk7N46TSy8ubTonmneY9vrpHNAnp0QBt2BxWV9dO3/j+BoVAb+a5G6YDPW3M5HOdMWQ==}
     engines: {node: '>=4'}
@@ -7566,6 +7563,11 @@ packages:
     resolution: {integrity: sha512-xV2bxeN6F7oYjZWTe/YPAy6MN2M+sL4u/Rlm2AHCIVGfo2p1yGmBHQ6vHehl4bRTZBdHu3TSkWdYgkwpYzAGSw==}
     engines: {node: '>=0.10.0'}
     dev: true
+
+  /mrmime@2.0.0:
+    resolution: {integrity: sha512-eu38+hdgojoyq63s+yTpN4XMBdt5l8HhMhc4VKLO9KM5caLIBvUm4thi7fFaxyTmCKeNnXZ5pAlBwCUnhA09uw==}
+    engines: {node: '>=10'}
+    dev: false
 
   /ms@2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
@@ -9727,7 +9729,7 @@ packages:
       typescript: 5.4.2
     dev: true
 
-  /ts-jest@29.1.2(@babel/core@7.24.0)(@jest/types@29.6.3)(jest@29.7.0)(typescript@5.4.2):
+  /ts-jest@29.1.2(@babel/core@7.24.0)(@jest/types@29.6.3)(babel-jest@29.7.0)(jest@29.7.0)(typescript@5.4.2):
     resolution: {integrity: sha512-br6GJoH/WUX4pu7FbZXuWGKGNDuU7b8Uj77g/Sp7puZV6EXzuByl6JrECvm0MzVzSTkSHWTihsXt+5XYER5b+g==}
     engines: {node: ^16.10.0 || ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -9750,6 +9752,7 @@ packages:
     dependencies:
       '@babel/core': 7.24.0
       '@jest/types': 29.6.3
+      babel-jest: 29.7.0(@babel/core@7.24.0)
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
       jest: 29.7.0(@types/node@20.11.26)(ts-node@10.9.2)
