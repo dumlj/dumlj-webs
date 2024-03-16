@@ -119,6 +119,10 @@ export class FileSystem<T extends Record<string, any> = Record<string, any>> {
   }
 
   public async writeFile(file: string, content: FSFileContent, options?: WriteFileOptions<T>) {
+    if (!(await this.diff(file, content))) {
+      return false
+    }
+
     const { dirname: folder } = resolveFile(file)
     const [folderStore, fileStore] = await this.db.getStore([FS_FOLDER_STORE_NAME, FS_FILE_STORE_NAME], 'readwrite')
 
@@ -129,6 +133,7 @@ export class FileSystem<T extends Record<string, any> = Record<string, any>> {
     await writeFile(fileStore)
 
     this.messager.dispatchEvent(EVENTS.FS_WRITE_FILE_EVENT, { file, content })
+    return true
   }
 
   public async rm(file: string) {

@@ -198,4 +198,12 @@ export class IndexedDB {
       await this.resolveRequest(pushRequest)
     }
   }
+
+  public destroy() {
+    return new Promise<void>((resolve, reject) => {
+      const openRequest = indexedDB.deleteDatabase(this.database)
+      openRequest.onerror = (error) => reject(error)
+      openRequest.onsuccess = () => resolve()
+    })
+  }
 }

@@ -9,6 +9,7 @@ describe('FileSystem', () => {
 
   afterEach(() => {
     fs['db'].close()
+    fs['db'].destroy()
   })
 
   it('should return true if the file content is different', async () => {
@@ -31,7 +32,7 @@ describe('FileSystem', () => {
   })
 
   it('should return true if the file does not exist', async () => {
-    const file = 'not-exist.txt'
+    const file = 'test.txt'
     const source = 'Hello, world!'
 
     const diff1 = await fs.diff(file, source)
