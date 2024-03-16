@@ -64,6 +64,8 @@ export class SyncService {
 
   @retryOnAuthError
   public async download() {
+    await this.open()
+
     const remotes = await this.gd.glob('**/*')
     const locals = await this.fs.glob('**/*')
 
@@ -90,6 +92,8 @@ export class SyncService {
 
   @retryOnAuthError
   public async upload() {
+    await this.open()
+
     const remotes = await this.gd.glob('**/*')
     const locals = await this.fs.glob('**/*')
 
