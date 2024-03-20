@@ -8,4 +8,6 @@ export function awaitGoogleClient(_target: any, _propertyKey: string, descriptor
     typeof gapi === 'undefined' && (await waitScript(SCRIPT_GOOGLE_API))
     return originalFn.call(this, ...args)
   }
+
+  return descriptor
 }
